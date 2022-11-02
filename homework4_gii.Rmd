@@ -1,0 +1,74 @@
+---
+title: "homework4_gii"
+author: "Jin Jiang"
+date: "2022-11-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sf)
+library(here)
+library(janitor)
+library(tidyverse)
+library(dplyr)
+library(countrycode)
+library(tmap)
+library(tmaptools)
+```
+read in data
+```{r}
+world_countries <- st_read(here::here("data/World_Countries__Generalized_.shp"))
+                           
+indices_all <- read_csv(here::here("data/HDR21-22_Composite_indices_complete_time_series.csv"))   
+
+```
+
+```{r}
+# calculate the difference value
+csv2 <- indices_all %>%
+  mutate(diff_gii = gii_2019 - gii_2010) 
+csv2['diff_gii']
+```
+
+```{r}
+# clean the COUNTRY column name
+world_countries_clean <- world_countries %>%
+  clean_names()
+
+#select the columns from csv2
+csv_diff_gii <- csv2 %>%
+  dplyr::select("diff_gii","gii_2019","gii_2010","country")
+
+# join csv data to country shapefile, remove na value
+countries_gii_join <- world_countries_clean %>%
+  dplyr::left_join(., csv_diff_gii, by = c("country"="country")) %>%
+  na.omit()
+```
+
+mapping
+
+```{r}
+qtm(countries_gii_join, fill = "diff_gii")
+```
+
+
+```{r}
+tmap_mode("plot")
+
+tm_rgb()+
+tm_shape(countries_gii_join) + 
+tm_polygons("diff_gii", 
+        style="jenks",
+        palette="YlOrBr",
+        midpoint=NA,
+        title="GII difference",
+        alpha = 0.5) + 
+  tm_compass(position = c("left", "bottom"),type = "arrow") + 
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_layout(title = "Difference in Gender Inequality Index 2010-2019", legend.position = c("right", "bottom"))
+```
+

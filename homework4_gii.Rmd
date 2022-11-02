@@ -16,15 +16,18 @@ library(janitor)
 library(tidyverse)
 library(dplyr)
 library(countrycode)
+
 library(tmap)
 library(tmaptools)
 ```
 read in data
 ```{r}
 world_countries <- st_read(here::here("data/World_Countries__Generalized_.shp"))
-                           
-indices_all <- read_csv(here::here("data/HDR21-22_Composite_indices_complete_time_series.csv"))   
+                          
+indices_all <- read_csv(here::here("data/HDR21-22_Composite_indices_complete_time_series.csv")) 
 
+#use".../...", no need for here
+world_countries <- st_read("data/World_Countries__Generalized_.shp") 
 ```
 
 ```{r}
@@ -45,8 +48,9 @@ csv_diff_gii <- csv2 %>%
 
 # join csv data to country shapefile, remove na value
 countries_gii_join <- world_countries_clean %>%
-  dplyr::left_join(., csv_diff_gii, by = c("country"="country")) %>%
-  na.omit()
+  dplyr::left_join(., csv_diff_gii, by = c("country"="country"))
+  #do not use na.omit maybe, just leave it empty, or the map will get missing countries. 
+
 ```
 
 mapping
@@ -59,9 +63,8 @@ qtm(countries_gii_join, fill = "diff_gii")
 ```{r}
 tmap_mode("plot")
 
-tm_rgb()+
 tm_shape(countries_gii_join) + 
-tm_polygons("diff_gii", 
+  tm_polygons("diff_gii", 
         style="jenks",
         palette="YlOrBr",
         midpoint=NA,

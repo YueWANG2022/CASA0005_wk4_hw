@@ -16,51 +16,58 @@ library(janitor)
 library(tidyverse)
 library(dplyr)
 library(countrycode)
-
 library(tmap)
 library(tmaptools)
 ```
 read in data
 ```{r}
-world_countries <- st_read(here::here("data/World_Countries__Generalized_.shp"))
-                          
-indices_all <- read_csv(here::here("data/HDR21-22_Composite_indices_complete_time_series.csv")) 
 
-#use".../...", no need for here
-world_countries <- st_read("data/World_Countries__Generalized_.shp") 
-```
-
-```{r}
-# calculate the difference value
-csv2 <- indices_all %>%
-  mutate(diff_gii = gii_2019 - gii_2010) 
-csv2['diff_gii']
-```
-
-```{r}
-# clean the COUNTRY column name
-world_countries_clean <- world_countries %>%
+# read the files based on local path
+# read the spatial data and clean column names
+world_countries <- st_read(here::here("prac4_data",
+                                  "World_Countries_(Generalized)",
+                                      "World_Countries__Generalized_.shp")) %>%
   clean_names()
 
-#select the columns from csv2
-csv_diff_gii <- csv2 %>%
-  dplyr::select("diff_gii","gii_2019","gii_2010","country")
+# read the global gender inequality data
+indices_all <- read_csv(here::here("prac4_data",
+"HDR21-22_Composite_indices_complete_time_series.csv"), locale = locale(encoding = "latin1"),
+na = "", skip=0)
 
-# join csv data to country shapefile, remove na value
-countries_gii_join <- world_countries_clean %>%
-  dplyr::left_join(., csv_diff_gii, by = c("country"="country"))
-  #do not use na.omit maybe, just leave it empty, or the map will get missing countries. 
 
+```
+
+```{r}
+# Since the spatial data includes the outside
+#  overseas territory, change the country name
+# in the csv to iso_code and join the spatial data
+
+csv_diff_gii <- indices_all %>%
+  # calculate the difference of gii 
+  mutate(diff_gii = gii_2019 - gii_2010) %>%
+  # use countrycode pkg to change country name
+  mutate(iso_code=countrycode(country, origin = 'country.name', destination = 'iso2c'))%>%
+  # select the required columns from csv2
+  dplyr::select("diff_gii","iso_code", "gii_2019","gii_2010","country")
+  
+```
+
+```{r}
+# join csv data to country shapefile
+countries_gii_join <- world_countries %>%
+  dplyr::left_join(., csv_diff_gii, by = c("iso"="iso_code"))
 ```
 
 mapping
 
 ```{r}
+# quick map
 qtm(countries_gii_join, fill = "diff_gii")
 ```
 
 
 ```{r}
+# advanced map
 tmap_mode("plot")
 
 tm_shape(countries_gii_join) + 

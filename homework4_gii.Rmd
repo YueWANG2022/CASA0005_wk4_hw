@@ -82,3 +82,21 @@ tm_shape(countries_gii_join) +
   tm_layout(title = "Difference in Gender Inequality Index 2010-2019", legend.position = c("right", "bottom"))
 ```
 
+
+# JUST TEST GIT FORK
+
+```{r}
+library(tmap)
+library(tmaptools)
+tmap_mode("plot")
+tm_shape(gdimapdiff) + 
+tm_polygons("difference", 
+        style="pretty",
+        palette="Blues",
+        midpoint=NA,
+        title="Differences",
+        alpha = 0.5) + 
+  tm_compass(position = c("right", "bottom"),type = "arrow") + 
+  tm_scale_bar(position = c("right", "bottom")) +
+  tm_layout(title = "Differences in gender index between 2010 and 2019", legend.position = c("left", "bottom"))
+```

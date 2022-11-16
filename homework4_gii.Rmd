@@ -83,7 +83,7 @@ tm_shape(countries_gii_join) +
 ```
 
 
-# JUST TEST GIT FORK
+# JUST TEST GIT FORK TO A NEW BRANCH
 
 ```{r}
 library(tmap)
